@@ -1,0 +1,14 @@
+streamlit
+plotly
+numpy
+scipy
+pandas
+pillow
+scikit-learn
+torch
+torchvision
+joblib
+chromadb
+sentence-transformers
+ibm-watsonx-ai
+langflow

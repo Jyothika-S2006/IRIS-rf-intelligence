@@ -1,0 +1,239 @@
+[
+  {
+    "type": "unknown",
+    "confidence": 0.0,
+    "severity": "MEDIUM",
+    "snr_before_db": 26.228360541586916,
+    "snr_after_db": 26.228360541586916,
+    "snr_delta_db": 0.0,
+    "anomaly_before": 0.0,
+    "anomaly_after": 0.0,
+    "mitigation": "no_mitigation",
+    "params": {},
+    "effective": true,
+    "narrative": "RF interference of type 'unknown' was detected with 0% confidence (anomaly score 0.00000). Applied no mitigation which successfully resolved the interference. SNR changed from 26.2 dB to 26.2 dB (+0.00 dB improvement).",
+    "rechecks": 1,
+    "incident_id": "8b419877",
+    "timestamp": "2026-10-14T07:22:50Z"
+  },
+  {
+    "type": "unknown",
+    "confidence": 0.0,
+    "severity": "MEDIUM",
+    "snr_before_db": 26.228360541586916,
+    "snr_after_db": 26.228360541586916,
+    "snr_delta_db": 0.0,
+    "anomaly_before": 0.0,
+    "anomaly_after": 0.0,
+    "mitigation": "no_mitigation",
+    "params": {},
+    "effective": true,
+    "narrative": "RF interference of type 'unknown' was detected with 0% confidence (anomaly score 0.00000). Applied no mitigation which successfully resolved the interference. SNR changed from 26.2 dB to 26.2 dB (+0.00 dB improvement).",
+    "rechecks": 1,
+    "incident_id": "142bb1bd",
+    "timestamp": "2026-10-14T07:27:15Z"
+  },
+  {
+    "type": "narrowband_cw",
+    "confidence": 0.9786,
+    "severity": "HIGH",
+    "snr_before_db": 30.077034784236304,
+    "snr_after_db": 18.20720454462745,
+    "snr_delta_db": -11.87,
+    "anomaly_before": 0.0,
+    "anomaly_after": 0.0,
+    "mitigation": "notch_filter",
+    "params": {
+      "notch_freq_norm": -0.3281,
+      "Q": 35.0
+    },
+    "effective": true,
+    "narrative": "RF interference of type 'narrowband_cw' was detected with 98% confidence (anomaly score 0.00000). Applied notch filter which successfully resolved the interference. SNR changed from 30.1 dB to 18.2 dB (-11.87 dB improvement).",
+    "rechecks": 0,
+    "incident_id": "bd2eb539",
+    "timestamp": "2026-10-14T07:32:58Z"
+  },
+  {
+    "type": "wideband_noise",
+    "confidence": 0.9993,
+    "severity": "MEDIUM",
+    "snr_before_db": 2.355730750982225,
+    "snr_after_db": 3.48202113739869,
+    "snr_delta_db": 1.13,
+    "anomaly_before": 0.0,
+    "anomaly_after": 0.0,
+    "mitigation": "bandpass_filter_narrow",
+    "params": {
+      "low_norm": 0.2,
+      "high_norm": 0.8,
+      "order": 5
+    },
+    "effective": true,
+    "narrative": "RF interference of type 'wideband_noise' was detected with 100% confidence (anomaly score 0.00000). Applied bandpass filter narrow which successfully resolved the interference. SNR changed from 2.4 dB to 3.5 dB (+1.13 dB improvement).",
+    "rechecks": 0,
+    "incident_id": "3db325ae",
+    "timestamp": "2026-10-14T07:32:58Z"
+  },
+  {
+    "type": "narrowband_cw",
+    "confidence": 0.6852,
+    "severity": "HIGH",
+    "snr_before_db": 30.67875961994097,
+    "snr_after_db": 15.230501480902205,
+    "snr_delta_db": -15.45,
+    "anomaly_before": 0.0,
+    "anomaly_after": 0.0,
+    "mitigation": "notch_filter",
+    "params": {
+      "notch_freq_norm": 0.1875,
+      "Q": 35.0
+    },
+    "effective": true,
+    "narrative": "RF interference of type 'narrowband_cw' was detected with 69% confidence (anomaly score 0.00000). Applied notch filter which successfully resolved the interference. SNR changed from 30.7 dB to 15.2 dB (-15.45 dB improvement).",
+    "rechecks": 0,
+    "incident_id": "a0e229f5",
+    "timestamp": "2026-10-14T07:32:58Z"
+  },
+  {
+    "type": "adjacent_channel",
+    "confidence": 0.9982,
+    "severity": "MEDIUM",
+    "snr_before_db": 3.9404766887808353,
+    "snr_after_db": 4.407741790135151,
+    "snr_delta_db": 0.47,
+    "anomaly_before": 0.0,
+    "anomaly_after": 0.0,
+    "mitigation": "bandpass_filter",
+    "params": {
+      "low_norm": 0.1,
+      "high_norm": 0.9,
+      "order": 5
+    },
+    "effective": true,
+    "narrative": "RF interference of type 'adjacent_channel' was detected with 100% confidence (anomaly score 0.00000). Applied bandpass filter which successfully resolved the interference. SNR changed from 3.9 dB to 4.4 dB (+0.47 dB improvement).",
+    "rechecks": 0,
+    "incident_id": "2d93d0b8",
+    "timestamp": "2026-10-14T07:32:58Z"
+  },
+  {
+    "type": "narrowband_cw",
+    "confidence": 0.8401,
+    "severity": "HIGH",
+    "snr_before_db": 24.225299343145373,
+    "snr_after_db": 11.134933856373223,
+    "snr_delta_db": -13.09,
+    "anomaly_before": 0.0,
+    "anomaly_after": 0.0,
+    "mitigation": "notch_filter",
+    "params": {
+      "notch_freq_norm": 0.2891,
+      "Q": 35.0
+    },
+    "effective": true,
+    "narrative": "RF interference of type 'narrowband_cw' was detected with 84% confidence (anomaly score 0.00000). Applied notch filter which successfully resolved the interference. SNR changed from 24.2 dB to 11.1 dB (-13.09 dB improvement).",
+    "rechecks": 0,
+    "incident_id": "63eeca97",
+    "timestamp": "2026-10-14T13:12:13Z"
+  },
+  {
+    "type": "pulsed",
+    "confidence": 0.7573,
+    "severity": "HIGH",
+    "snr_before_db": 28.59415197366472,
+    "snr_after_db": 24.201291008013968,
+    "snr_delta_db": -4.39,
+    "anomaly_before": 0.0,
+    "anomaly_after": 0.0,
+    "mitigation": "pulse_blanking",
+    "params": {
+      "blanked_fraction": 0.1006,
+      "power_threshold": 20.526917
+    },
+    "effective": true,
+    "narrative": "RF interference of type 'pulsed' was detected with 76% confidence (anomaly score 0.00000). Applied pulse blanking which successfully resolved the interference. SNR changed from 28.6 dB to 24.2 dB (-4.39 dB improvement).",
+    "rechecks": 0,
+    "incident_id": "798f02d0",
+    "timestamp": "2026-10-14T13:30:12Z"
+  },
+  {
+    "type": "narrowband_cw",
+    "confidence": 0.8401,
+    "severity": "HIGH",
+    "snr_before_db": 24.225299343145373,
+    "snr_after_db": 11.134933856373223,
+    "snr_delta_db": -13.09,
+    "anomaly_before": 0.0,
+    "anomaly_after": 0.0,
+    "mitigation": "notch_filter",
+    "params": {
+      "notch_freq_norm": 0.2891,
+      "Q": 35.0
+    },
+    "effective": true,
+    "narrative": "RF interference of type 'narrowband_cw' was detected with 84% confidence (anomaly score 0.00000). Applied notch filter which successfully resolved the interference. SNR changed from 24.2 dB to 11.1 dB (-13.09 dB improvement).",
+    "rechecks": 0,
+    "incident_id": "e5f3009b",
+    "timestamp": "2026-10-14T13:38:41Z"
+  },
+  {
+    "type": "narrowband_cw",
+    "confidence": 0.8401,
+    "severity": "HIGH",
+    "snr_before_db": 24.225299343145373,
+    "snr_after_db": 11.134933856373223,
+    "snr_delta_db": -13.09,
+    "anomaly_before": 0.0,
+    "anomaly_after": 0.0,
+    "mitigation": "notch_filter",
+    "params": {
+      "notch_freq_norm": 0.2891,
+      "Q": 35.0
+    },
+    "effective": true,
+    "narrative": "RF interference of type 'narrowband_cw' was detected with 84% confidence (anomaly score 0.00000). Applied notch filter which successfully resolved the interference. SNR changed from 24.2 dB to 11.1 dB (-13.09 dB improvement).",
+    "rechecks": 0,
+    "incident_id": "cd662f1a",
+    "timestamp": "2026-10-14T13:42:16Z"
+  },
+  {
+    "type": "narrowband_cw",
+    "confidence": 0.8401,
+    "severity": "HIGH",
+    "snr_before_db": 24.225299343145373,
+    "snr_after_db": 11.134933856373223,
+    "snr_delta_db": -13.09,
+    "anomaly_before": 0.0,
+    "anomaly_after": 0.0,
+    "mitigation": "notch_filter",
+    "params": {
+      "notch_freq_norm": 0.2891,
+      "Q": 35.0
+    },
+    "effective": true,
+    "narrative": "RF interference of type 'narrowband_cw' was detected with 84% confidence (anomaly score 0.00000). Applied notch filter which successfully resolved the interference. SNR changed from 24.2 dB to 11.1 dB (-13.09 dB improvement).",
+    "rechecks": 0,
+    "incident_id": "d0fb95a2",
+    "timestamp": "2026-10-14T13:42:50Z"
+  },
+  {
+    "type": "wideband_noise",
+    "confidence": 0.9999,
+    "severity": "MEDIUM",
+    "snr_before_db": 2.8092345388700752,
+    "snr_after_db": 4.760881283883233,
+    "snr_delta_db": 1.95,
+    "anomaly_before": 0.0,
+    "anomaly_after": 0.0,
+    "mitigation": "bandpass_filter_narrow",
+    "params": {
+      "low_norm": 0.2,
+      "high_norm": 0.8,
+      "order": 5
+    },
+    "effective": true,
+    "narrative": "RF interference of type 'wideband_noise' was detected with 100% confidence (anomaly score 0.00000). Applied bandpass filter narrow which successfully resolved the interference. SNR changed from 2.8 dB to 4.8 dB (+1.95 dB improvement).",
+    "rechecks": 0,
+    "incident_id": "cf63a1e3",
+    "timestamp": "2026-10-14T14:01:24Z"
+  }
+]

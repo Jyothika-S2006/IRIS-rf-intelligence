@@ -183,9 +183,8 @@ streamlit run dashboard.py
 # Select interference type → RUN FULL AGENT PIPELINE → watch agents reason live
 ```
 
-See [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md) for the full 3-minute presentation script.
-See [`JUDGE_QA.md`](JUDGE_QA.md) for 10 likely judge questions with answers.
+
 
 ---
 
-*Built for IBM Hackathon 2024 — Problem Statement #27 | IRIS*
+*Built for IBM Hackathon 2026 — Problem Statement #27 | IRIS*

@@ -1,12 +1,14 @@
 # IRIS — Interference Recognition & Intelligence System
 
-> **IRIS — Interference Recognition & Intelligence System** — IBM Hackathon Problem Statement #27  
-> Stack: IBM watsonx.ai Granite · Langflow · Python · Streamlit · PyTorch · scikit-learn
+> **IRIS — Interference Recognition & Intelligence System** — IBM Hackathon Problem Statement #27
+> Stack: IBM watsonx.ai Granite · Python · Streamlit · scikit-learn · PyTorch · Langflow
+
+[![GitHub](https://img.shields.io/badge/GitHub-Jyothika--S2006%2FIRIS--rf--intelligence-red?logo=github)](https://github.com/Jyothika-S2006/IRIS-rf-intelligence)
 
 ---
 
 ## ⚠️ Data Notice
-All RF signal data in this project is **synthetically generated** by `simulator.py`.  
+All RF signal data in this project is **synthetically generated** by `simulator.py`.
 Real-world validation would require SDR captures (e.g. RTL-SDR, USRP, HackRF) fed into
 `features.py` via the same `extract_features_from_iq()` pipeline. The feature engineering
 (Welch PSD, STFT, spectral flatness, PAPR, duty cycle) is physically grounded and would
@@ -26,7 +28,7 @@ Signal Simulator → Feature Pipeline → 3 Models (Autoencoder + GBM + CNN)
                                              ↓
                         Streamlit Dashboard (premium red/black UI)
                                              ↓
-                        IBM Cloud Code Engine (Docker, cloud-side build)
+                             http://localhost:8501
 ```
 
 ---
@@ -44,155 +46,93 @@ rf_assistant/
 ├── dashboard.py          Streamlit UI (premium red/black)
 ├── data_loader.py        IQ sample loader utility
 ├── requirements.txt
-├── Dockerfile
-├── .dockerignore
+├── Dockerfile            (ready for future cloud deployment)
 ├── .streamlit/
 │   └── config.toml       Dark theme + red accent
 ├── kb/
 │   ├── interference_types.md
 │   ├── mitigation_strategies.md
 │   └── interference_sources.md
-├── models/               ← created by train_all.py
-│   ├── autoencoder.pt
-│   ├── scaler_ae.pkl
-│   ├── ae_threshold.json
-│   ├── gbm_classifier.pkl
+├── models/
+│   ├── gbm_classifier.pkl      ← primary classifier (trained)
 │   ├── scaler_gbm.pkl
 │   ├── label_encoder.pkl
-│   ├── cnn_classifier.pt
+│   ├── autoencoder.pt          ← anomaly detector (train on Colab)
+│   ├── scaler_ae.pkl
+│   ├── ae_threshold.json
+│   ├── cnn_classifier.pt       ← spectrogram CNN (train on Colab)
 │   └── cnn_classes.json
-└── data/                 ← created by train_all.py
+└── data/
+    ├── incidents.json           ← persistent agent memory
     ├── metadata.csv
-    ├── features.csv
-    ├── incidents.json
-    ├── iq/
-    └── spectrograms/
+    └── features.csv
 ```
 
 ---
 
-## Step-by-Step Setup
+## Quick Start — Run Locally
 
-### 1. Smoke Test (verify code on your laptop, ~3 min)
-
+### 1. Clone the repo
 ```bash
-cd rf_assistant
-pip install numpy scipy pandas scikit-learn torch pillow joblib
-python train_all.py --smoke
+git clone https://github.com/Jyothika-S2006/IRIS-rf-intelligence.git
+cd IRIS-rf-intelligence
 ```
 
-Expected output: `Smoke test PASSED ✓`
+### 2. Install dependencies
+```bash
+pip install -r requirements.txt
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
 
-### 2. Full Training on Google Colab
+### 3. Run the dashboard
+```bash
+streamlit run dashboard.py
+```
 
-1. **Upload** the entire `rf_assistant/` folder to Google Drive.
+Open **http://localhost:8501** in your browser.
 
-2. **Open a new Colab notebook** and run these cells:
+### 4. Use the app
+- Select an interference type from the **Simulate panel**
+- Click **"RUN FULL AGENT PIPELINE"**
+- Watch the 4 agents reason live in the **Agent Activity panel**
+- See classification, mitigation, before/after SNR in the right panel
+- Ask questions in the **Chat box**
+
+---
+
+## Train Models (Google Colab — needed for Autoencoder + CNN)
+
+The GBM classifier is pre-trained and included. To also train the Autoencoder and CNN:
 
 ```python
-# Cell 1 — mount Drive
+# Cell 1 — Mount Drive
 from google.colab import drive
 drive.mount('/content/drive')
-```
 
-```python
-# Cell 2 — install dependencies
-%pip install -q scikit-learn torch torchvision scipy pillow pandas \
-               matplotlib seaborn joblib chromadb sentence-transformers \
-               ibm-watsonx-ai streamlit plotly
-```
+# Cell 2 — Install
+%pip install -q torch torchvision scikit-learn scipy pillow pandas matplotlib seaborn joblib
 
-```python
-# Cell 3 — run full training
-%cd /content/drive/MyDrive/rf_assistant
+# Cell 3 — Train
+%cd /content/drive/MyDrive/IRIS-rf-intelligence
 !python train_all.py
 ```
 
 Expected runtime: **~10–15 min on Colab T4 GPU**.
+Download `models/` folder and paste it back into the repo.
 
-3. **Download the `models/` folder** from Google Drive to your laptop and place it inside `rf_assistant/`.
+---
 
-### 3. Run the Dashboard Locally
+## Set watsonx.ai Credentials (optional — enables IBM Granite LLM)
 
-```bash
-cd rf_assistant
-pip install -r requirements.txt
-streamlit run dashboard.py
-```
+Without credentials the agents run in **deterministic rule-based mode** — fully functional.
+To enable Granite natural-language explanations:
 
-Open http://localhost:8501
-
-### 4. Set watsonx.ai Credentials (optional, enables Granite LLM)
-
-```bash
+```powershell
 # Windows PowerShell
 $env:WATSONX_URL        = "https://us-south.ml.cloud.ibm.com"
 $env:WATSONX_APIKEY     = "your-api-key"
 $env:WATSONX_PROJECT_ID = "your-project-id"
 streamlit run dashboard.py
-```
-
-Without credentials the agents run in deterministic (rule-based) mode — fully functional.
-
----
-
-## IBM Cloud Code Engine Deployment (cloud-side build, no Docker locally)
-
-### Prerequisites
-```bash
-# Install IBM Cloud CLI
-# Windows: winget install IBM.IBMCloudCLI
-ibmcloud login --apikey YOUR_APIKEY -r us-south
-ibmcloud plugin install code-engine
-ibmcloud ce project create --name rf-interference
-ibmcloud ce project select --name rf-interference
-```
-
-### Option A: Build from a GitHub repository (recommended)
-```bash
-# 1. Push rf_assistant/ to a public (or private with secret) GitHub repo
-# 2. Create an IBM Container Registry namespace
-ibmcloud cr namespace-add rf-assistant-ns
-
-# 3. Create a build (cloud-side, no Docker needed locally)
-ibmcloud ce build create \
-  --name rf-build \
-  --image us.icr.io/rf-assistant-ns/rf-assistant:latest \
-  --source https://github.com/YOUR_USERNAME/rf-assistant \
-  --context-dir rf_assistant \
-  --strategy dockerfile \
-  --size medium
-
-# 4. Run the build
-ibmcloud ce buildrun submit --build rf-build
-
-# 5. Deploy the application
-ibmcloud ce application create \
-  --name rf-assistant \
-  --image us.icr.io/rf-assistant-ns/rf-assistant:latest \
-  --port 8080 \
-  --min-scale 1 \
-  --max-scale 3 \
-  --memory 4G \
-  --cpu 2 \
-  --env WATSONX_URL=https://us-south.ml.cloud.ibm.com \
-  --env WATSONX_APIKEY=YOUR_APIKEY \
-  --env WATSONX_PROJECT_ID=YOUR_PROJECT_ID
-
-# 6. Get the public URL
-ibmcloud ce application get --name rf-assistant | grep URL
-```
-
-### Option B: Build from local source (requires IBM Cloud CLI buildpacks, no Docker daemon)
-```bash
-ibmcloud ce application create \
-  --name rf-assistant \
-  --build-source . \
-  --build-dockerfile Dockerfile \
-  --image us.icr.io/rf-assistant-ns/rf-assistant:latest \
-  --port 8080 \
-  --env WATSONX_APIKEY=YOUR_APIKEY \
-  --env WATSONX_PROJECT_ID=YOUR_PROJECT_ID
 ```
 
 ---
@@ -201,9 +141,9 @@ ibmcloud ce application create \
 
 | Label | Name | Real-World Sources |
 |-------|------|--------------------|
-| 0 | clean | Normal WiFi/OFDM |
+| 0 | clean | Normal WiFi / OFDM |
 | 1 | narrowband_cw | Faulty oscillator, GPS jammer, microwave harmonic |
-| 2 | wideband_noise | Switching PSU EMI, broadband jammer, GPU |
+| 2 | wideband_noise | Switching PSU EMI, broadband jammer, GPU noise |
 | 3 | pulsed | Weather radar, airport radar, microwave oven |
 | 4 | adjacent_channel | Overlapping WiFi channels, femtocell, DECT phone |
 
@@ -222,16 +162,29 @@ ibmcloud ce application create \
 
 ```
 OrchestratorAgent
-  ├── MonitorAgent      → analyze_signal() [autoencoder anomaly detector]
+  ├── MonitorAgent      → analyze_signal()   [autoencoder anomaly detector]
   ├── DiagnosisAgent    → classify_signal() + retrieve_kb() + self-verify
   ├── MitigationAgent   → apply_mitigation() + re_run_detection() [closed loop]
-  └── ReportAgent       → store_incident() [persistent memory]
+  └── ReportAgent       → store_incident()   [persistent memory]
 ```
 
 All agent decisions are grounded in:
-1. **Tool outputs** (measured anomaly score, classifier probabilities, before/after SNR)
-2. **RAG KB** (ChromaDB / TF-IDF over `kb/*.md`)
-3. **Granite LLM** for natural-language synthesis (if credentials set)
+1. **Tool outputs** — measured anomaly score, classifier probabilities, before/after SNR
+2. **RAG KB** — TF-IDF / ChromaDB over `kb/*.md` docs
+3. **IBM Granite LLM** — natural-language synthesis (if watsonx credentials set)
+
+---
+
+## Demo
+
+```bash
+streamlit run dashboard.py
+# Open http://localhost:8501
+# Select interference type → RUN FULL AGENT PIPELINE → watch agents reason live
+```
+
+See [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md) for the full 3-minute presentation script.
+See [`JUDGE_QA.md`](JUDGE_QA.md) for 10 likely judge questions with answers.
 
 ---
 

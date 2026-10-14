@@ -1,0 +1,449 @@
+{
+  "name": "IRIS \u2014 Interference Recognition & Intelligence System",
+  "description": "Autonomous RF interference detection, classification, mitigation and reporting using watsonx.ai Granite",
+  "data": {
+    "nodes": [
+      {
+        "id": "watsonxllm_c9f6d794",
+        "type": "genericNode",
+        "position": {
+          "x": 800,
+          "y": 300
+        },
+        "data": {
+          "type": "WatsonxLLM",
+          "display_name": "Granite-13b-chat (watsonx.ai)",
+          "node": {
+            "template": {
+              "model_id": {
+                "value": "ibm/granite-13b-chat-v2",
+                "type": "str"
+              },
+              "url": {
+                "value": "https://us-south.ml.cloud.ibm.com",
+                "type": "str"
+              },
+              "project_id": {
+                "value": "",
+                "type": "str",
+                "required": true
+              },
+              "api_key": {
+                "value": "",
+                "type": "str",
+                "required": true,
+                "password": true
+              },
+              "max_new_tokens": {
+                "value": 512,
+                "type": "int"
+              },
+              "temperature": {
+                "value": 0.2,
+                "type": "float"
+              },
+              "repetition_penalty": {
+                "value": 1.1,
+                "type": "float"
+              }
+            },
+            "description": "Granite-13b-chat (watsonx.ai)",
+            "base_classes": [
+              "Chain",
+              "BaseLLM",
+              "Tool"
+            ]
+          }
+        },
+        "width": 240,
+        "height": 160
+      },
+      {
+        "id": "pythonfunctiontool_dfd9b7cd",
+        "type": "genericNode",
+        "position": {
+          "x": 100,
+          "y": 100
+        },
+        "data": {
+          "type": "PythonFunctionTool",
+          "display_name": "Monitor: analyze_signal",
+          "node": {
+            "template": {
+              "name": {
+                "value": "analyze_signal",
+                "type": "str"
+              },
+              "description": {
+                "value": "Run autoencoder anomaly detection on IQ signal. Returns anomaly_score, threshold, is_anomaly, features.",
+                "type": "str"
+              },
+              "code": {
+                "value": "from agent_tools import analyze_signal as _fn\nimport numpy as np, json\ndef analyze_signal(sample_id: str) -> str:\n    from data_loader import load_iq_by_id\n    iq = load_iq_by_id(sample_id)\n    return json.dumps(_fn(iq, sample_id))\n",
+                "type": "code"
+              }
+            },
+            "description": "Monitor: analyze_signal",
+            "base_classes": [
+              "Chain",
+              "BaseLLM",
+              "Tool"
+            ]
+          }
+        },
+        "width": 240,
+        "height": 160
+      },
+      {
+        "id": "pythonfunctiontool_72993be1",
+        "type": "genericNode",
+        "position": {
+          "x": 100,
+          "y": 300
+        },
+        "data": {
+          "type": "PythonFunctionTool",
+          "display_name": "Diagnosis: classify_signal",
+          "node": {
+            "template": {
+              "name": {
+                "value": "classify_signal",
+                "type": "str"
+              },
+              "description": {
+                "value": "Classify interference type using GBM + CNN. Returns final_class, confidence, agreement, needs_recheck.",
+                "type": "str"
+              },
+              "code": {
+                "value": "from agent_tools import classify_signal as _fn\nimport numpy as np, json\ndef classify_signal(sample_id: str) -> str:\n    from data_loader import load_iq_by_id\n    iq = load_iq_by_id(sample_id)\n    return json.dumps(_fn(iq, sample_id))\n",
+                "type": "code"
+              }
+            },
+            "description": "Diagnosis: classify_signal",
+            "base_classes": [
+              "Chain",
+              "BaseLLM",
+              "Tool"
+            ]
+          }
+        },
+        "width": 240,
+        "height": 160
+      },
+      {
+        "id": "pythonfunctiontool_1707dade",
+        "type": "genericNode",
+        "position": {
+          "x": 100,
+          "y": 500
+        },
+        "data": {
+          "type": "PythonFunctionTool",
+          "display_name": "RAG: retrieve_kb",
+          "node": {
+            "template": {
+              "name": {
+                "value": "retrieve_kb",
+                "type": "str"
+              },
+              "description": {
+                "value": "Semantic search over RF interference knowledge base. Input: query string. Returns grounding documents.",
+                "type": "str"
+              },
+              "code": {
+                "value": "from agent_tools import retrieve_kb as _fn\nimport json\ndef retrieve_kb(query: str) -> str:\n    return json.dumps(_fn(query, top_k=3))\n",
+                "type": "code"
+              }
+            },
+            "description": "RAG: retrieve_kb",
+            "base_classes": [
+              "Chain",
+              "BaseLLM",
+              "Tool"
+            ]
+          }
+        },
+        "width": 240,
+        "height": 160
+      },
+      {
+        "id": "pythonfunctiontool_3f37a102",
+        "type": "genericNode",
+        "position": {
+          "x": 100,
+          "y": 700
+        },
+        "data": {
+          "type": "PythonFunctionTool",
+          "display_name": "Mitigation: apply + verify",
+          "node": {
+            "template": {
+              "name": {
+                "value": "apply_and_verify",
+                "type": "str"
+              },
+              "description": {
+                "value": "Apply DSP mitigation (notch/bandpass/blanking) to signal, re-run detection, return before/after SNR and anomaly score.",
+                "type": "str"
+              },
+              "code": {
+                "value": "from agent_tools import apply_mitigation, re_run_detection\nimport numpy as np, json\ndef apply_and_verify(sample_id: str, interference_type: str) -> str:\n    from data_loader import load_iq_by_id\n    iq = load_iq_by_id(sample_id)\n    mit = apply_mitigation(iq, interference_type)\n    ver = re_run_detection(iq, mit['filtered_iq'], sample_id)\n    return json.dumps({'strategy': mit['strategy'], 'params': mit['params'], 'verification': ver})\n",
+                "type": "code"
+              }
+            },
+            "description": "Mitigation: apply + verify",
+            "base_classes": [
+              "Chain",
+              "BaseLLM",
+              "Tool"
+            ]
+          }
+        },
+        "width": 240,
+        "height": 160
+      },
+      {
+        "id": "pythonfunctiontool_f7393415",
+        "type": "genericNode",
+        "position": {
+          "x": 100,
+          "y": 900
+        },
+        "data": {
+          "type": "PythonFunctionTool",
+          "display_name": "Memory: store_incident",
+          "node": {
+            "template": {
+              "name": {
+                "value": "store_incident",
+                "type": "str"
+              },
+              "description": {
+                "value": "Persist incident record to incidents.json memory store.",
+                "type": "str"
+              },
+              "code": {
+                "value": "from agent_tools import store_incident as _fn\nimport json\ndef store_incident(record_json: str) -> str:\n    record = json.loads(record_json)\n    return json.dumps(_fn(record))\n",
+                "type": "code"
+              }
+            },
+            "description": "Memory: store_incident",
+            "base_classes": [
+              "Chain",
+              "BaseLLM",
+              "Tool"
+            ]
+          }
+        },
+        "width": 240,
+        "height": 160
+      },
+      {
+        "id": "pythonfunctiontool_ecc4c47e",
+        "type": "genericNode",
+        "position": {
+          "x": 100,
+          "y": 1100
+        },
+        "data": {
+          "type": "PythonFunctionTool",
+          "display_name": "Memory: get_incidents",
+          "node": {
+            "template": {
+              "name": {
+                "value": "get_incident_memory",
+                "type": "str"
+              },
+              "description": {
+                "value": "Retrieve last N incident records for context.",
+                "type": "str"
+              },
+              "code": {
+                "value": "from agent_tools import get_incident_memory as _fn\nimport json\ndef get_incident_memory(n: int = 5) -> str:\n    return json.dumps(_fn(n))\n",
+                "type": "code"
+              }
+            },
+            "description": "Memory: get_incidents",
+            "base_classes": [
+              "Chain",
+              "BaseLLM",
+              "Tool"
+            ]
+          }
+        },
+        "width": 240,
+        "height": 160
+      },
+      {
+        "id": "agentexecutor_5b010d28",
+        "type": "genericNode",
+        "position": {
+          "x": 550,
+          "y": 600
+        },
+        "data": {
+          "type": "AgentExecutor",
+          "display_name": "RF Orchestrator Agent",
+          "node": {
+            "template": {
+              "system_message": {
+                "value": "You are an autonomous RF interference detection and mitigation orchestrator. You have access to the following tools: analyze_signal, classify_signal, retrieve_kb, apply_and_verify, store_incident, get_incident_memory. \n\nYour workflow (ALWAYS follow this order):\n1. Call get_incident_memory to check for recent similar incidents.\n2. Call analyze_signal to get the anomaly score.\n3. If is_anomaly=True: call classify_signal.\n4. If needs_recheck=True: call classify_signal again.\n5. Call retrieve_kb with '<type> interference sources and characteristics'.\n6. Call retrieve_kb with '<type> mitigation strategy'.\n7. Call apply_and_verify with the interference type.\n8. Call store_incident with the full incident record.\n9. Return a structured report grounded ONLY in tool outputs.\n\nIMPORTANT: Never invent measurements. Every claim must reference a tool output.",
+                "type": "str"
+              },
+              "max_iterations": {
+                "value": 12,
+                "type": "int"
+              },
+              "handle_parsing_errors": {
+                "value": true,
+                "type": "bool"
+              },
+              "verbose": {
+                "value": true,
+                "type": "bool"
+              }
+            },
+            "description": "RF Orchestrator Agent",
+            "base_classes": [
+              "Chain",
+              "BaseLLM",
+              "Tool"
+            ]
+          }
+        },
+        "width": 240,
+        "height": 160
+      },
+      {
+        "id": "textinput_eff46f4b",
+        "type": "genericNode",
+        "position": {
+          "x": 50,
+          "y": 600
+        },
+        "data": {
+          "type": "TextInput",
+          "display_name": "Signal Sample ID",
+          "node": {
+            "template": {
+              "input_value": {
+                "value": "narrowband_cw_0001",
+                "type": "str"
+              }
+            },
+            "description": "Signal Sample ID",
+            "base_classes": [
+              "Chain",
+              "BaseLLM",
+              "Tool"
+            ]
+          }
+        },
+        "width": 240,
+        "height": 160
+      },
+      {
+        "id": "textoutput_73e989f0",
+        "type": "genericNode",
+        "position": {
+          "x": 1100,
+          "y": 600
+        },
+        "data": {
+          "type": "TextOutput",
+          "display_name": "Incident Report",
+          "node": {
+            "template": {},
+            "description": "Incident Report",
+            "base_classes": [
+              "Chain",
+              "BaseLLM",
+              "Tool"
+            ]
+          }
+        },
+        "width": 240,
+        "height": 160
+      }
+    ],
+    "edges": [
+      {
+        "id": "e_textinpu_agentexe",
+        "source": "textinput_eff46f4b",
+        "sourceHandle": "output",
+        "target": "agentexecutor_5b010d28",
+        "targetHandle": "input",
+        "animated": true
+      },
+      {
+        "id": "e_watsonxl_agentexe",
+        "source": "watsonxllm_c9f6d794",
+        "sourceHandle": "output",
+        "target": "agentexecutor_5b010d28",
+        "targetHandle": "llm",
+        "animated": true
+      },
+      {
+        "id": "e_pythonfu_agentexe",
+        "source": "pythonfunctiontool_dfd9b7cd",
+        "sourceHandle": "output",
+        "target": "agentexecutor_5b010d28",
+        "targetHandle": "tools",
+        "animated": true
+      },
+      {
+        "id": "e_pythonfu_agentexe",
+        "source": "pythonfunctiontool_72993be1",
+        "sourceHandle": "output",
+        "target": "agentexecutor_5b010d28",
+        "targetHandle": "tools",
+        "animated": true
+      },
+      {
+        "id": "e_pythonfu_agentexe",
+        "source": "pythonfunctiontool_1707dade",
+        "sourceHandle": "output",
+        "target": "agentexecutor_5b010d28",
+        "targetHandle": "tools",
+        "animated": true
+      },
+      {
+        "id": "e_pythonfu_agentexe",
+        "source": "pythonfunctiontool_3f37a102",
+        "sourceHandle": "output",
+        "target": "agentexecutor_5b010d28",
+        "targetHandle": "tools",
+        "animated": true
+      },
+      {
+        "id": "e_pythonfu_agentexe",
+        "source": "pythonfunctiontool_f7393415",
+        "sourceHandle": "output",
+        "target": "agentexecutor_5b010d28",
+        "targetHandle": "tools",
+        "animated": true
+      },
+      {
+        "id": "e_pythonfu_agentexe",
+        "source": "pythonfunctiontool_ecc4c47e",
+        "sourceHandle": "output",
+        "target": "agentexecutor_5b010d28",
+        "targetHandle": "tools",
+        "animated": true
+      },
+      {
+        "id": "e_agentexe_textoutp",
+        "source": "agentexecutor_5b010d28",
+        "sourceHandle": "output",
+        "target": "textoutput_73e989f0",
+        "targetHandle": "input",
+        "animated": true
+      }
+    ],
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 0.75
+    }
+  }
+}

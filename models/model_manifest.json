@@ -1,0 +1,113 @@
+{
+  "schema_version": "1.0",
+  "project": "IRIS — Interference Recognition & Intelligence System",
+  "description": "Model cards for all ML models used in IRIS. Each entry records training data, performance metrics, and governance notes.",
+  "models": [
+    {
+      "id": "gbm_classifier",
+      "type": "GradientBoostingClassifier",
+      "library": "scikit-learn",
+      "file": "models/gbm_model.pkl",
+      "task": "multi-class interference classification",
+      "classes": ["clean", "narrowband_cw", "wideband_noise", "pulsed", "adjacent_channel"],
+      "features": [
+        "mean_power", "std_power", "peak_power", "crest_factor",
+        "spectral_flatness", "spectral_centroid", "spectral_rolloff",
+        "zero_crossing_rate", "kurtosis", "skewness", "snr_estimate_db",
+        "band_power_low", "band_power_mid", "band_power_high", "band_power_ratio"
+      ],
+      "training": {
+        "samples_per_class": 500,
+        "total_samples": 2500,
+        "synthetic_data": true,
+        "snr_range_db": "5–30",
+        "data_script": "train_all.py"
+      },
+      "metrics": {
+        "accuracy": "≥ 0.92 (synthetic test set)",
+        "note": "Trained on simulated IQ data — performance on real RF hardware may vary."
+      },
+      "governance": {
+        "purpose": "primary classifier in DiagnosisAgent ensemble",
+        "bias_notes": "trained on balanced synthetic classes — no real-world class imbalance captured",
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "autoencoder_anomaly",
+      "type": "PyTorch Autoencoder (numpy inference)",
+      "library": "PyTorch (train) / numpy (inference)",
+      "files": {
+        "weights": "models/ae_model.npz",
+        "threshold": "models/ae_threshold.json"
+      },
+      "task": "unsupervised anomaly detection (reconstruction MSE threshold)",
+      "input": "15-dimensional feature vector from clean IQ",
+      "training": {
+        "samples": 1000,
+        "signal_type": "clean OFDM only",
+        "epochs": 50,
+        "data_script": "train_all.py"
+      },
+      "metrics": {
+        "threshold": "95th percentile of clean reconstruction MSE",
+        "false_positive_rate": "~5% on clean signals by design"
+      },
+      "governance": {
+        "purpose": "MonitorAgent — first-stage anomaly trigger",
+        "limitation": "Only trained on clean signals — novel interference not seen during training may be missed or misclassified",
+        "version": "1.0"
+      }
+    },
+    {
+      "id": "cnn_classifier",
+      "type": "1D CNN (SmallCNN)",
+      "library": "PyTorch",
+      "file": "models/cnn_model.pth",
+      "task": "interference classification from raw IQ segment",
+      "classes": ["clean", "narrowband_cw", "wideband_noise", "pulsed", "adjacent_channel"],
+      "input": "256-sample real IQ segment (interleaved I/Q)",
+      "architecture": {
+        "conv_layers": 2,
+        "kernel_sizes": [8, 4],
+        "filters": [16, 32],
+        "pooling": "MaxPool1d",
+        "classifier": "Linear(64 → 32 → 5)"
+      },
+      "training": {
+        "samples_per_class": 500,
+        "total_samples": 2500,
+        "epochs": 30,
+        "optimizer": "Adam",
+        "data_script": "train_all.py"
+      },
+      "metrics": {
+        "accuracy": "≥ 0.90 (synthetic test set)"
+      },
+      "governance": {
+        "purpose": "secondary classifier in DiagnosisAgent ensemble — provides agreement check with GBM",
+        "version": "1.0"
+      }
+    }
+  ],
+  "llm_config": {
+    "primary": {
+      "model_id": "ibm/granite-4-0-tiny-preview",
+      "provider": "IBM watsonx.ai",
+      "call_method": "SDK (ibm-watsonx-ai)",
+      "purpose": "RAG-grounded explanation, mitigation rationale"
+    },
+    "fallback": {
+      "model_id": "ibm/granite-3-8b-instruct",
+      "provider": "IBM watsonx.ai",
+      "call_method": "REST API",
+      "purpose": "automatic fallback if SDK call fails"
+    },
+    "governance": {
+      "max_temperature": 0.3,
+      "max_tokens_per_call": 512,
+      "output_guardrail": "blocks responses containing uncertainty phrases",
+      "audit_log": "data/audit.jsonl"
+    }
+  }
+}

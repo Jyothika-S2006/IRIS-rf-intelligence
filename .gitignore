@@ -1,0 +1,23 @@
+# secrets - NEVER push
+.env
+*.env
+
+# python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# large generated data (recreated by train_all.py)
+data/iq/
+data/spectrograms/
+reports/
+
+# empty placeholder model files (0 KB) - only push real trained ones
+models/autoencoder.pt
+models/scaler_ae.pkl
+models/cnn_classifier.pt
+models/cnn_classes.json
+
+# OS
+.DS_Store
+Thumbs.db

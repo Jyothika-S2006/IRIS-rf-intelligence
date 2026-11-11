@@ -1,0 +1,73 @@
+# governance.yaml — IRIS AI Governance Policy
+# =============================================
+# Defines agent behaviour policies, LLM constraints, guardrail rules,
+# and mitigation approval thresholds for the IRIS multi-agent system.
+#
+# Consumed by: agent_system.py, dashboard.py (HITL logic)
+# Format: YAML — edit and restart the app to apply changes.
+
+# ── LLM Policy ────────────────────────────────────────────────────────────────
+llm_policy:
+  primary_model:   "ibm/granite-4-0-tiny-preview"
+  fallback_model:  "ibm/granite-3-8b-instruct"
+  max_temperature: 0.3          # cap temperature for factual RF tasks
+  max_tokens:      512          # hard cap per LLM call
+  cost_alert_usd:  0.10         # warn dashboard if per-session cost exceeds this
+  allow_fallback:  true         # enable REST fallback if SDK call fails
+  log_all_calls:   true         # append every call to audit log
+
+# ── Agent Policies ────────────────────────────────────────────────────────────
+agent_policies:
+  MonitorAgent:
+    anomaly_threshold_multiplier: 1.0   # 1.0 = use trained threshold as-is
+    severity_high_score:          0.08  # anomaly_score > this → HIGH severity
+    severity_medium_score:        0.05  # anomaly_score > this → MEDIUM
+
+  DiagnosisAgent:
+    confidence_threshold:         0.65  # below this → recheck (up to max_rechecks)
+    max_rechecks:                  2
+    require_model_agreement:      false # if true, GBM+CNN must agree or escalate
+
+  MitigationAgent:
+    require_human_approval:
+      - HIGH                            # severities that need HITL before applying
+    auto_approve:
+      - LOW
+      - MEDIUM
+    blocked_strategies: []              # add strategy names here to disable them
+
+  ReportAgent:
+    store_all_incidents:          true
+    max_incident_memory:          500
+
+# ── Input Guardrails ──────────────────────────────────────────────────────────
+input_guardrails:
+  min_iq_samples:     64
+  max_iq_rms:         1000.0
+  reject_nan_inf:     true
+  reject_wrong_dtype: true
+
+# ── Output Guardrails ─────────────────────────────────────────────────────────
+output_guardrails:
+  # If LLM explanation contains any of these phrases, fall back to deterministic
+  block_phrases:
+    - "I don't know"
+    - "I cannot determine"
+    - "as an AI language model"
+    - "I'm not sure"
+  min_explanation_length: 20     # chars — shorter → use deterministic fallback
+
+# ── Audit Log ─────────────────────────────────────────────────────────────────
+audit:
+  enabled:       true
+  log_file:      "data/audit.jsonl"
+  log_llm_calls: true
+  log_hitl:      true
+  log_guardrail_rejections: true
+
+# ── HITL (Human-in-the-Loop) ──────────────────────────────────────────────────
+hitl:
+  enabled:              true
+  trigger_severity:     HIGH          # severity level that triggers approval gate
+  approval_timeout_sec: 300           # seconds before auto-reject if no response
+  default_on_timeout:   reject        # reject | approve
